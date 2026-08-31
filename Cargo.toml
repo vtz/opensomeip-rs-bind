@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/opensomeip-sys", "crates/opensomeip"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/vtz/opensomeip-rs-bind"
