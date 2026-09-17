@@ -1,12 +1,27 @@
+# Copyright (c) 2025 Vinicius Tadeu Zein
+# SPDX-License-Identifier: Apache-2.0
+
 name: CI
 on:
   push:
     branches: [main, "feature/**"]
   pull_request:
     branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   check:
+    name: Check (${{ matrix.name }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: default
+            args: "--workspace"
+          - name: no_std
+            args: "--workspace --no-default-features"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -14,6 +29,86 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - run: cargo check ${{ matrix.args }}
+
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - run: cargo fmt --check
-      - run: cargo clippy --all-targets -- -D warnings
-      - run: cargo test --workspace
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy --workspace --no-default-features -- -D warnings
+
+  ferrocene-subset:
+    name: Ferrocene Subset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build with panic=abort (no_std)
+        run: RUSTFLAGS="-C panic=abort" cargo build --workspace --no-default-features
+      - name: Build with panic=abort (std)
+        run: RUSTFLAGS="-C panic=abort" cargo build --workspace
+
+  # Tests require the opensomeip C library to be linked.
+  # This job builds the C library from the submodule first.
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++
+      - name: Build opensomeip C library
+        run: |
+          cd extern/opensomeip
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opensomeip-install \
+            -DBUILD_CAPI=ON \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF
+          make -j$(nproc)
+          make install
+      - name: Run tests
+        env:
+          OPENSOMEIP_DIR: ${{ github.workspace }}/opensomeip-install
+          LD_LIBRARY_PATH: ${{ github.workspace }}/opensomeip-install/lib
+        run: cargo test --workspace
+
+  cross:
+    name: Cross-compile (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo check --workspace --target ${{ matrix.target }}
