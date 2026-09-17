@@ -367,13 +367,21 @@ impl Drop for RpcServer {
     fn drop(&mut self) {
         if !self.ptr.is_null() {
             // SAFETY: ptr was obtained from opensomeip_rpc_server_create.
+            // Destroy the C server first so callbacks can no longer fire.
             unsafe {
                 let _ = opensomeip_rpc_server_destroy(self.ptr);
             }
         }
-        // Note: handler Box pointers in _handlers are intentionally leaked
-        // to match the C API lifetime. They are freed when the C library
-        // destroys the server and stops invoking the callbacks.
+        // Reclaim every handler Box now that the C server is destroyed
+        // and no more callbacks can arrive.
+        #[cfg(feature = "std")]
+        for raw in self._handlers.drain(..) {
+            // SAFETY: each pointer was created by Box::into_raw in register_method
+            // and the C server is already destroyed, so no callback can reference it.
+            unsafe {
+                let _ = Box::from_raw(raw as *mut MethodHandlerBox);
+            }
+        }
     }
 }
 

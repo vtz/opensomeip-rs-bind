@@ -214,8 +214,10 @@ impl SomeIpMessage {
     /// Serialize message to wire format as a new `Vec<u8>`.
     #[cfg(feature = "std")]
     pub fn serialize(&self) -> Result<Vec<u8>> {
-        // Start with a reasonable buffer; the SOME/IP header is 8 bytes minimum
-        let mut buf = vec![0u8; 4096];
+        // SOME/IP wire header is 16 bytes; add margin for extended headers.
+        let payload_len = self.payload_length().unwrap_or(0);
+        let capacity = payload_len.saturating_add(64);
+        let mut buf = vec![0u8; capacity];
         let len = self.serialize_into(&mut buf)?;
         buf.truncate(len);
         Ok(buf)

@@ -36,8 +36,8 @@ echo "── Requirements coverage summary ──"
 echo ""
 
 for req in REQ_RUST_001 REQ_RUST_002 REQ_RUST_003 REQ_RUST_004 REQ_RUST_005 REQ_RUST_006 REQ_RUST_007; do
-    impl_count=$(grep -r "@implements.*$req" "$SEARCH_DIR" --include='*.rs' -c 2>/dev/null || echo "0")
-    test_count=$(grep -r "@tests.*$req" "$SEARCH_DIR" --include='*.rs' -c 2>/dev/null || echo "0")
+    impl_count=$({ grep -r "@implements.*$req" "$SEARCH_DIR" --include='*.rs' 2>/dev/null || true; } | wc -l | tr -d ' ')
+    test_count=$({ grep -r "@tests.*$req" "$SEARCH_DIR" --include='*.rs' 2>/dev/null || true; } | wc -l | tr -d ' ')
     printf "  %-15s  impl: %2s  tests: %2s\n" "$req" "$impl_count" "$test_count"
 done
 
