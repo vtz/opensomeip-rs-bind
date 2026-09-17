@@ -51,11 +51,11 @@ fn main() {
 ///
 /// The C FFI functions (opensomeip_message_create, etc.) live in
 /// `libopensomeip_capi`, which in turn depends on the core
-/// `libopensomeip` C++ library.  Both must be linked, and the C++
-/// standard library is required when linking statically.
+/// `libopensomeip` C++ library.  Both must be linked statically, and
+/// the C++ standard library is required to resolve runtime symbols.
 fn link_opensomeip() {
-    println!("cargo:rustc-link-lib=opensomeip_capi");
-    println!("cargo:rustc-link-lib=opensomeip");
+    println!("cargo:rustc-link-lib=static=opensomeip_capi");
+    println!("cargo:rustc-link-lib=static=opensomeip");
 
     // The core library is C++; link the C++ standard library so that
     // static archives resolve their runtime symbols.

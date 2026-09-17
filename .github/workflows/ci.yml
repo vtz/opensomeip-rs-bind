@@ -86,7 +86,6 @@ jobs:
           cmake .. \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opensomeip-install \
             -DBUILD_CAPI=ON \
-            -DBUILD_SHARED_LIBS=ON \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF
           make -j$(nproc)
