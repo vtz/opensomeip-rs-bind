@@ -95,6 +95,7 @@ fn deserializer_basic() {
 
 /// @tests REQ_RUST_002, REQ_RUST_004
 #[test]
+#[ignore = "requires UDP loopback networking; run with --include-ignored"]
 fn udp_loopback() {
     let ep = Endpoint::new("127.0.0.1", 30490, TransportProtocol::Udp);
     let mut transport = UdpTransport::new(&ep).expect("create UDP transport");
