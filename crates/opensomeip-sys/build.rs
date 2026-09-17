@@ -18,7 +18,7 @@ fn main() {
     // Strategy 1: Explicit OPENSOMEIP_DIR env var
     if let Ok(dir) = std::env::var("OPENSOMEIP_DIR") {
         println!("cargo:rustc-link-search=native={dir}/lib");
-        println!("cargo:rustc-link-lib=opensomeip");
+        link_opensomeip();
         println!("cargo:include={dir}/include");
         return;
     }
@@ -26,7 +26,7 @@ fn main() {
     // Strategy 1b: Separate lib/include dirs
     if let Ok(lib_dir) = std::env::var("OPENSOMEIP_LIB_DIR") {
         println!("cargo:rustc-link-search=native={lib_dir}");
-        println!("cargo:rustc-link-lib=opensomeip");
+        link_opensomeip();
         if let Ok(inc_dir) = std::env::var("OPENSOMEIP_INCLUDE_DIR") {
             println!("cargo:include={inc_dir}");
         }
@@ -44,5 +44,26 @@ fn main() {
     // Strategy 3: System default — just emit the link directive.
     // The linker will search default paths. If the library is not
     // installed, linking will fail with a clear error message.
+    link_opensomeip();
+}
+
+/// Emit link directives for both the CAPI wrapper and the core library.
+///
+/// The C FFI functions (opensomeip_message_create, etc.) live in
+/// `libopensomeip_capi`, which in turn depends on the core
+/// `libopensomeip` C++ library.  Both must be linked, and the C++
+/// standard library is required when linking statically.
+fn link_opensomeip() {
+    println!("cargo:rustc-link-lib=opensomeip_capi");
     println!("cargo:rustc-link-lib=opensomeip");
+
+    // The core library is C++; link the C++ standard library so that
+    // static archives resolve their runtime symbols.
+    if cfg!(target_os = "macos") {
+        println!("cargo:rustc-link-lib=c++");
+    } else if cfg!(target_os = "windows") {
+        // MSVC links the C++ runtime automatically.
+    } else {
+        println!("cargo:rustc-link-lib=stdc++");
+    }
 }

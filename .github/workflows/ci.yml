@@ -83,7 +83,10 @@ jobs:
         run: |
           cd extern/opensomeip
           mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opensomeip-install
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opensomeip-install \
+            -DBUILD_CAPI=ON \
+            -DBUILD_SHARED_LIBS=ON
           make -j$(nproc)
           make install
       - name: Run tests

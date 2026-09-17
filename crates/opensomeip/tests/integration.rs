@@ -100,7 +100,7 @@ fn udp_loopback() {
     let mut transport = UdpTransport::new(&ep).expect("create UDP transport");
     transport.start().expect("start transport");
 
-    let mut msg = SomeIpMessageBuilder::new()
+    let msg = SomeIpMessageBuilder::new()
         .unwrap()
         .service_id(0x1234)
         .unwrap()
