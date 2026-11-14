@@ -6,3 +6,7 @@ resolver = "2"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/vtz/opensomeip-rs-bind"
+
+[profile.release]
+panic = "abort"
+opt-level = 2
