@@ -19,6 +19,7 @@ pub enum SomeIpError {
     ConnectionRefused,
     Timeout,
     InvalidEndpoint,
+    MulticastError,
 
     // Message errors
     InvalidMessage,
@@ -76,6 +77,7 @@ impl SomeIpError {
             }
             opensomeip_result_t::OPENSOMEIP_RESULT_TIMEOUT => Err(Self::Timeout),
             opensomeip_result_t::OPENSOMEIP_RESULT_INVALID_ENDPOINT => Err(Self::InvalidEndpoint),
+            opensomeip_result_t::OPENSOMEIP_RESULT_MULTICAST_ERROR => Err(Self::MulticastError),
 
             opensomeip_result_t::OPENSOMEIP_RESULT_INVALID_MESSAGE => Err(Self::InvalidMessage),
             opensomeip_result_t::OPENSOMEIP_RESULT_INVALID_MESSAGE_TYPE => {
@@ -138,6 +140,7 @@ impl core::fmt::Display for SomeIpError {
             Self::ConnectionRefused => write!(f, "connection refused"),
             Self::Timeout => write!(f, "timeout"),
             Self::InvalidEndpoint => write!(f, "invalid endpoint"),
+            Self::MulticastError => write!(f, "multicast error"),
             Self::InvalidMessage => write!(f, "invalid message"),
             Self::InvalidMessageType => write!(f, "invalid message type"),
             Self::InvalidServiceId => write!(f, "invalid service ID"),
@@ -200,6 +203,10 @@ mod tests {
         assert_eq!(
             SomeIpError::from_result(opensomeip_result_t::OPENSOMEIP_RESULT_OUT_OF_MEMORY),
             Err(SomeIpError::OutOfMemory),
+        );
+        assert_eq!(
+            SomeIpError::from_result(opensomeip_result_t::OPENSOMEIP_RESULT_MULTICAST_ERROR),
+            Err(SomeIpError::MulticastError),
         );
     }
 
