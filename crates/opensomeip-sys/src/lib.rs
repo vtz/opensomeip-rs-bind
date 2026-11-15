@@ -40,6 +40,7 @@ pub enum opensomeip_result_t {
     OPENSOMEIP_RESULT_CONNECTION_REFUSED = 0x04,
     OPENSOMEIP_RESULT_TIMEOUT = 0x05,
     OPENSOMEIP_RESULT_INVALID_ENDPOINT = 0x06,
+    OPENSOMEIP_RESULT_MULTICAST_ERROR = 0x07,
 
     OPENSOMEIP_RESULT_INVALID_MESSAGE = 0x10,
     OPENSOMEIP_RESULT_INVALID_MESSAGE_TYPE = 0x11,
@@ -827,6 +828,10 @@ mod tests {
             0x01
         );
         assert_eq!(opensomeip_result_t::OPENSOMEIP_RESULT_TIMEOUT as i32, 0x05);
+        assert_eq!(
+            opensomeip_result_t::OPENSOMEIP_RESULT_MULTICAST_ERROR as i32,
+            0x07
+        );
         assert_eq!(
             opensomeip_result_t::OPENSOMEIP_RESULT_INVALID_MESSAGE as i32,
             0x10
